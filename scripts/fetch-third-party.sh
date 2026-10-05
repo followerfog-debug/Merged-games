@@ -36,4 +36,8 @@ if ! grep -q "Patched for the merged app" luxengine/src/platform/sdl2/platform_m
   patch -p1 -d luxengine < "$ROOT/patches/luxengine.patch"
 fi
 
+# SDL ships sample Android projects containing prebuilt gradle-wrapper.jar files. We only use SDL's Java
+# sources and our own Gradle setup, and CI's wrapper-validation rejects unknown jars, so drop them.
+find . -name gradle-wrapper.jar -delete
+
 echo "Done."
