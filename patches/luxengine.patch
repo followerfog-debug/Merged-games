@@ -1,0 +1,41 @@
+--- a/src/sprite_sheet.cpp
++++ b/src/sprite_sheet.cpp
+@@ -186,7 +186,7 @@
+ 			Lux_Sprite_SetCollisions( t_sprite, collision_element );
+ 			Lux_Sprite_SetBorderImages( t_sprite, border_element );
+ 
+-			this->children.insert( std::make_pair<uint32_t, LuxSprite*>( t_sprite->hash, t_sprite ) );
++			this->children.insert( std::pair<uint32_t, LuxSprite*>( t_sprite->hash, t_sprite ) );
+ 		}
+ 	}
+ 
+@@ -252,7 +252,7 @@
+ 				}
+ 			}
+ 
+-			this->children.insert( std::make_pair<uint32_t, LuxSprite*>( t_sprite->hash, t_sprite ) );
++			this->children.insert( std::pair<uint32_t, LuxSprite*>( t_sprite->hash, t_sprite ) );
+ 		}
+ 	}
+ 	/*
+@@ -317,7 +317,7 @@
+ 	t_sprite->sheet_area.w = elix::string::ToIntU16(info_array[3]);
+ 	t_sprite->sheet_area.h = elix::string::ToIntU16(info_array[4]);
+ 
+-	this->children.insert( std::make_pair<uint32_t, LuxSprite*>( elix::string::Hash(info_array[0]), t_sprite ) );
++	this->children.insert( std::pair<uint32_t, LuxSprite*>( elix::string::Hash(info_array[0]), t_sprite ) );
+ 
+ 	info_array.clear();
+ 
+--- a/src/platform/sdl2/platform_main.cpp
++++ b/src/platform/sdl2/platform_main.cpp
+@@ -29,7 +29,8 @@
+ 		{
+ 			std::string base_executable = (argc ? argv[0] : "/lux" );
+ 			lux::engine = new LuxEngine( base_executable );
+-			if ( lux::engine->Start("puttytris.game") )
++			/* Patched for the merged app: the Android activity passes the path of game.mokoi as argv[1]. */
++			if ( lux::engine->Start( argc > 1 ? std::string(argv[1]) : std::string("game.mokoi") ) )
+ 			{
+ 				lux::engine->Loop();
+ 			}
