@@ -32,8 +32,11 @@ class ZeldaActivity : SDLActivity() {
 
     override fun getLibraries(): Array<String> = arrayOf("SDL2", "SDL2_mixer", "luxengine")
 
-    /** Becomes argv[1] of the engine's main(). */
-    override fun getArguments(): Array<String> = arrayOf(gameFile.absolutePath)
+    /**
+     * Becomes argv[1] of the engine's main(). We pass the game's folder with a trailing slash, which is the
+     * engine's normal convention (MokoiGame::ReadType appends "game.mokoi" itself).
+     */
+    override fun getArguments(): Array<String> = arrayOf(gameFile.parentFile!!.absolutePath + "/")
 
     private fun installContent(root: File) {
         val stamp = File(root, ".installed-version")
