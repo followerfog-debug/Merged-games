@@ -20,20 +20,38 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: android-actions/setup-android@v3
-
+      # The runner image already ships the Android SDK ($ANDROID_HOME); we only add what we need.
       - name: Install NDK, CMake and platform
-        run: sdkmanager "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" "build-tools;35.0.0"
+        run: |
+          set -o pipefail
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "ndk;27.0.12077973" "cmake;3.22.1" "platforms;android-35" "build-tools;35.0.0" 2>&1 | tee -a build.log
 
       - name: Fetch SDL, the Zelda engine and its content
-        run: bash scripts/fetch-third-party.sh
+        run: |
+          set -o pipefail
+          bash scripts/fetch-third-party.sh 2>&1 | tee -a build.log
 
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.10.2
 
       - name: Build debug APK
-        run: gradle --no-daemon :app:assembleDebug
+        run: |
+          set -o pipefail
+          gradle --no-daemon :app:assembleDebug 2>&1 | tee -a build.log
+
+      # Logs can't always be downloaded, so on failure surface the error lines as annotations on the run.
+      - name: Report errors
+        if: failure()
+        run: |
+          [ -f build.log ] || { echo "::error title=No build log::the build failed before producing output"; exit 0; }
+          msg=$(grep -n -i -E "error|FAILED|what went wrong|undefined reference|not found|could not" -A2 build.log \
+                | head -50 | cut -c1-300 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=Build errors (first matches)::${msg}"
+          tail -n 15 build.log | cut -c1-300 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}' > tail.txt
+          echo "::error title=Build log (last lines)::$(cat tail.txt)"
 
       - name: Keep the APK as a build artifact
         uses: actions/upload-artifact@v4
