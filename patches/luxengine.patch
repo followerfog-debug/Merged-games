@@ -1,3 +1,112 @@
+--- a/src/config.cpp
++++ b/src/config.cpp
+@@ -114,8 +114,8 @@
+ 	this->path = elix::program::RootDirectory();
+ 	this->platform = "posix";
+ 
+-	this->SetString( "project.file", this->path + ELIX_DIR_SSEPARATOR"game"ELIX_DIR_SSEPARATOR ); /* Path to Default Game */
+-	this->SetString( "project.title", PROGRAM_NAME" "PROGRAM_VERSION );
++	this->SetString( "project.file", this->path + ELIX_DIR_SSEPARATOR "game" ELIX_DIR_SSEPARATOR ); /* Path to Default Game */
++	this->SetString( "project.title", PROGRAM_NAME " " PROGRAM_VERSION );
+ 	this->SetString( "language.default", "en" );
+ 	this->SetString( "language.available", "en;English" );
+ 	this->SetNumber( "player.number", 1 );
+--- a/src/engine.cpp
++++ b/src/engine.cpp
+@@ -98,10 +98,10 @@
+ 	lux::core = new CoreSystem();
+ 	lux::global_config = new Config();
+ 
+-	lux::core->SystemMessage( SYSTEM_MESSAGE_LOG, PROGRAM_NAME" - Version "PROGRAM_VERSION" Log" );
++	lux::core->SystemMessage( SYSTEM_MESSAGE_LOG, PROGRAM_NAME " - Version " PROGRAM_VERSION " Log" );
+ 	lux::core->SystemMessage( SYSTEM_MESSAGE_LOG, "-------------------------------------" );
+ 
+-	lux::core->SystemMessage( SYSTEM_MESSAGE_ERROR, PROGRAM_NAME" - Version "PROGRAM_VERSION" Error Log" );
++	lux::core->SystemMessage( SYSTEM_MESSAGE_ERROR, PROGRAM_NAME " - Version " PROGRAM_VERSION " Error Log" );
+ 	lux::core->SystemMessage( SYSTEM_MESSAGE_ERROR, "-------------------------------------" );
+ 
+ 	if ( executable[0] != 0 )
+@@ -230,7 +230,7 @@
+ 			lux::screen::display("Loading Content Package");
+ 			if ( !lux::game_data->LoadPackage( package_main_name ) )
+ 			{
+-				this->ShowDialog("Can not find " + package_main_name + "\n"PACKAGE_GET_URL + package_main_name + "\nExiting game.", DIALOGOK);
++				this->ShowDialog("Can not find " + package_main_name + "\n" PACKAGE_GET_URL + package_main_name + "\nExiting game.", DIALOGOK);
+ 				this->state = GAMEERROR;
+ 				return false;
+ 			}
+@@ -242,7 +242,7 @@
+ 			lux::screen::display("Loading Content Package");
+ 			if ( !lux::game_data->LoadPackage( package_music_name ) )
+ 			{
+-				this->ShowDialog("Can not find " + package_music_name + "\n"PACKAGE_GET_URL + package_music_name + "\nExiting game.", DIALOGOK);
++				this->ShowDialog("Can not find " + package_music_name + "\n" PACKAGE_GET_URL + package_music_name + "\nExiting game.", DIALOGOK);
+ 				this->state = GAMEERROR;
+ 				return false;
+ 			}
+@@ -254,7 +254,7 @@
+ 			lux::screen::display("Loading Content Package");
+ 			if ( !lux::game_data->LoadPackage( package_music_name ) )
+ 			{
+-				this->ShowDialog("Can not find " + package_music_name + "\n"PACKAGE_GET_URL + package_music_name + "\nExiting game.", DIALOGOK);
++				this->ShowDialog("Can not find " + package_music_name + "\n" PACKAGE_GET_URL + package_music_name + "\nExiting game.", DIALOGOK);
+ 				this->state = GAMEERROR;
+ 				return false;
+ 			}
+@@ -266,7 +266,7 @@
+ 			lux::screen::display("Loading Content Package");
+ 			if ( !lux::game_data->LoadPackage( package_music_name ) )
+ 			{
+-				this->ShowDialog("Can not find " + package_music_name + "\n"PACKAGE_GET_URL + package_music_name + "\nExiting game.", DIALOGOK);
++				this->ShowDialog("Can not find " + package_music_name + "\n" PACKAGE_GET_URL + package_music_name + "\nExiting game.", DIALOGOK);
+ 				this->state = GAMEERROR;
+ 				return false;
+ 			}
+--- a/src/game_config.cpp
++++ b/src/game_config.cpp
+@@ -24,7 +24,7 @@
+ 	{
+ 		std::stringstream config_file;
+ 
+-		if ( lux::game_data->GetStream("./"DIRECTORY_FILE, &config_file) )
++		if ( lux::game_data->GetStream("./" DIRECTORY_FILE, &config_file) )
+ 		{
+ 			has_config_file = true;
+ 		}
+--- a/src/libs/elix/elix_path.cpp
++++ b/src/libs/elix/elix_path.cpp
+@@ -45,7 +45,7 @@
+ 			int lastslash = path.find_last_of( ELIX_DIR_SEPARATOR, path.length() );
+ 			if ( lastslash == -1 )
+ 			{
+-				return "."ELIX_DIR_SSEPARATOR;
++				return "." ELIX_DIR_SSEPARATOR;
+ 			}
+ 			if ( trailing )
+ 			{
+--- a/src/mokoi_game.cpp
++++ b/src/mokoi_game.cpp
+@@ -250,7 +250,7 @@
+ 				}
+ 				if ( type == MOKOI_GAME_DIRECTORY )
+ 				{
+-					elix::File * png_file = new elix::File( file_path + "resources"ELIX_DIR_SSEPARATOR"icon32.png" );
++					elix::File * png_file = new elix::File( file_path + "resources" ELIX_DIR_SSEPARATOR "icon32.png" );
+ 					if ( png_file->Exist() )
+ 					{
+ 						this->png_length = png_file->Length();
+--- a/src/platform/sdl2/platform_main.cpp
++++ b/src/platform/sdl2/platform_main.cpp
+@@ -29,7 +29,8 @@
+ 		{
+ 			std::string base_executable = (argc ? argv[0] : "/lux" );
+ 			lux::engine = new LuxEngine( base_executable );
+-			if ( lux::engine->Start("puttytris.game") )
++			/* Patched for the merged app: the Android activity passes the path of game.mokoi as argv[1]. */
++			if ( lux::engine->Start( argc > 1 ? std::string(argv[1]) : std::string("game.mokoi") ) )
+ 			{
+ 				lux::engine->Loop();
+ 			}
 --- a/src/sprite_sheet.cpp
 +++ b/src/sprite_sheet.cpp
 @@ -186,7 +186,7 @@
@@ -27,15 +136,14 @@
  
  	info_array.clear();
  
---- a/src/platform/sdl2/platform_main.cpp
-+++ b/src/platform/sdl2/platform_main.cpp
-@@ -29,7 +29,8 @@
- 		{
- 			std::string base_executable = (argc ? argv[0] : "/lux" );
- 			lux::engine = new LuxEngine( base_executable );
--			if ( lux::engine->Start("puttytris.game") )
-+			/* Patched for the merged app: the Android activity passes the path of game.mokoi as argv[1]. */
-+			if ( lux::engine->Start( argc > 1 ? std::string(argv[1]) : std::string("game.mokoi") ) )
- 			{
- 				lux::engine->Loop();
- 			}
+--- a/src/stdheader.h
++++ b/src/stdheader.h
+@@ -13,7 +13,7 @@
+ #endif
+ 
+ #ifndef PROGRAM_VERSION
+-#define PROGRAM_VERSION "Nightly " __DATE__ " "__TIME__
++#define PROGRAM_VERSION "Nightly " __DATE__ " " __TIME__
+ #endif
+ 
+ #ifndef PROGRAM_VERSION_STABLE
