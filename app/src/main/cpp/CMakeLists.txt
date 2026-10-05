@@ -26,17 +26,21 @@ file(GLOB LUX_DIRS
     ${LUX}/src/gui/*.cpp
     ${LUX}/src/portal/*.cpp
     ${LUX}/src/test/*.cpp
-    ${LUX}/src/entity_systems/*.cpp
-    ${LUX}/src/gles/*.cpp)
+    ${LUX}/src/entity_systems/*.cpp)
 
 # Files in the tree that the engine's own makefile never builds (leftovers, an unused Squirrel
 # backend, and *.inc.cpp fragments that other files #include). Verified with a host syntax check.
-list(FILTER LUX_TOP  EXCLUDE REGEX "map_object_data\\.cpp$")
-list(FILTER LUX_DIRS EXCLUDE REGEX "portal_item\\.cpp$|squirrel_lang\\.cpp$|reusable_graphics_system\\.cpp$|shaders_[a-z_]+\\.inc\\.cpp$")
+# Also excluded: files present in src/ that the makefile does not build. Several of them define the same
+# symbols as the platform versions (project_media.cpp vs platform/sdl2/project_media.cpp -> duplicate symbols).
+list(FILTER LUX_TOP  EXCLUDE REGEX "map_object_data\\.cpp$|project_media\\.cpp$|main\\.cpp$|lux_types\\.cpp$|map_masks\\.cpp$")
+list(FILTER LUX_DIRS EXCLUDE REGEX "portal_item\\.cpp$|squirrel_lang\\.cpp$|reusable_graphics_system\\.cpp$|shaders_[a-z_]+\\.inc\\.cpp$|tjs\\.cpp$|egl_display\\.cpp$|gl_camera\\.cpp$")
 
 # Platform layer: SDL2 (same one the desktop build uses). network_client/platform_launch are desktop-only.
 file(GLOB LUX_PLATFORM ${LUX}/src/platform/sdl2/*.cpp)
-list(FILTER LUX_PLATFORM EXCLUDE REGEX "network_client\\.cpp$|platform_launch\\.cpp$")
+# graphics_opengl.cpp is the desktop-OpenGL backend (fixed-function GL 2.x), which Android has no equivalent of.
+# The engine's other display mode, DISPLAYMODE_NATIVE (as used for the Raspberry Pi), draws through SDL's 2D
+# renderer, which SDL implements on top of GLES2 on Android.
+list(FILTER LUX_PLATFORM EXCLUDE REGEX "network_client\\.cpp$|platform_launch\\.cpp$|graphics_opengl\\.cpp$")
 
 # Pawn scripting VM (game logic scripts run on this)
 set(LUX_AMX
@@ -69,7 +73,7 @@ target_include_directories(luxengine PRIVATE
 
 target_compile_definitions(luxengine PRIVATE
     TIXML_USE_STL
-    USE_SDL2 DISPLAYMODE_OPENGL OPENGLENABLED
+    USE_SDL2 DISPLAYMODE_NATIVE
     HAS_SOCKLEN_T HAVE_UNISTD_H HAVE_INTTYPES_H HAVE_STDINT_H
     FLOATPOINT FIXEDPOINT NO_ZLIB
     PLATFORMBITS=64
@@ -84,4 +88,4 @@ target_compile_options(luxengine PRIVATE
     -Wno-write-strings -fno-access-control -fno-exceptions -fno-rtti
     -Wno-unused-local-typedefs)
 
-target_link_libraries(luxengine PRIVATE SDL2 SDL2_mixer GLESv2 EGL android log)
+target_link_libraries(luxengine PRIVATE SDL2 SDL2_mixer android log)
